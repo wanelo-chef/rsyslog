@@ -1,0 +1,62 @@
+# Rsylog.conf from Chef
+#
+# if you experience problems, check
+# http://www.rsyslog.com/troubleshoot for assistance
+
+# rsyslog v3: load input modules
+# If you do not load inputs, nothing happens!
+# You may need to set the module load path if modules are not found.
+
+$ModLoad immark   # provides --MARK-- message capability
+$ModLoad imsolaris # kernel logging (imklog or imsolaris)
+
+# Custom Templates
+<% @templates.each do |template| %>
+$template <%= template["name"] %>,"<%= template["format"] %>"
+<% end %>
+
+# Log anything (except mail) of level info or higher.
+# Don't log private authentication messages!
+*.info;mail.none;authpriv.none;cron.none;local*.none    -/var/log/messages
+
+# The authpriv file has restricted access.
+authpriv.*                                              /var/log/secure
+
+# Log all the mail messages in one place.
+mail.*                                                  -/var/log/maillog
+
+# Log cron stuff
+cron.*                                                  -/var/log/cron
+
+# Everybody gets emergency messages
+*.emerg                                                 *
+
+# Save news errors of level crit and higher in a special file.
+uucp,news.crit                                          -/var/log/spooler
+
+# Save boot messages to boot.log
+local7.*                                                /var/log/boot.log
+
+<% @logs.each do |log| %>
+<%= log["pri"] %>  <%= [log["file"], log["template"]].compact.join(";") %>
+<% end %>
+
+# ######### Receiving Messages from Remote Hosts ##########
+<% if @tcp["enabled"] %>
+# TCP Syslog Server:
+# provides TCP syslog reception and GSS-API (if compiled to support it)
+$ModLoad imtcp.so  # load module
+
+<%= "$TCPServerAddress #{@tcp["bind_address"]}" if @tcp["bind_address"] %>
+
+$InputTCPServerRun <%= @tcp["port"] %> # start up TCP listener at port 514
+<% end %>
+
+<% if @udp["enabled"] %>
+# UDP Syslog Server:
+$ModLoad imudp.so
+
+<%= "$UDPServerAddress #{@udp["bind_address"]}" if @udp["bind_address"] %>
+
+$UDPServerRun <%= @udp["port"] %>
+<% end %>
