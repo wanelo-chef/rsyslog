@@ -55,7 +55,8 @@ logs.each do |log|
   file log["file"] do
     owner log["owner"]
     mode log["mode"]
-    action :touch
+    action :create
+    not_if { ::File.exists?(log["file"]) }
   end
 end
 
