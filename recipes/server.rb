@@ -17,25 +17,17 @@
 # limitations under the License.
 #
 
-def listen_addr_for interface, type
-  interface_node = node['network']['interfaces'][interface]['addresses']
-
-  interface_node.select { |address, data| data['family'] == type }[0][0]
-end
-
 include_recipe "rsyslog::default"
 
 # Ensure that rsyslog only binds on correct interfaces
-if node["rsyslog"]["udp"]["bind_interface"]
-  node.default["rsyslog"]["udp"]["bind_address"] =
-      listen_addr_for(node["rsyslog"]["udp"]["bind_interface"], node["rsyslog"]["udp"]["protocol"])
+if node["rsyslog"]["udp"]["bind_attribute"]
+  node.default["rsyslog"]["udp"]["bind_address"] = node[node["rsyslog"]["udp"]["bind_attribute"]]
 else
   node.default["rsyslog"]["udp"]["bind_address"] = nil
 end
 
-if node["rsyslog"]["tcp"]["bind_interface"]
-  node.default["rsyslog"]["tcp"]["bind_address"] =
-      listen_addr_for(node["rsyslog"]["tcp"]["bind_interface"], node["rsyslog"]["tcp"]["protocol"])
+if node["rsyslog"]["tcp"]["bind_attribute"]
+  node.default["rsyslog"]["tcp"]["bind_address"] = node[node["rsyslog"]["tcp"]["bind_attribute"]]
 else
   node.default["rsyslog"]["tcp"]["bind_address"] = nil
 end
