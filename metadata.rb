@@ -1,3 +1,4 @@
+name             "rsyslog"
 maintainer       "Wanelo, Inc."
 maintainer_email "ops@wanelo.com"
 license          "Apache 2.0"
